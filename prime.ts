@@ -14,19 +14,20 @@ async function search(imdbId: string) {
 async function getStreams(title: string) {
   const titlePage = load(title);
   const userData = titlePage("#user-data").attr("v");
-  if (!userData) throw new Error("No user data found");
+  if (!userData) throw new NotFoundError("No user data found");
 
   const links = getLinks(userData);
 
   const embeds = [];
 
-  if (!links) throw new Error("No links found");
+  if (!links) throw new NotFoundError("No links found");
 
   for (const link in links) {
     if (link.includes(link)) {
       const element = titlePage(`.propper-link[link_version='${link}']`);
       const sourceName = element.parent().parent().parent().find(".version-host").text().trim();
       let embedId;
+      let quality = element.parent().find("span").text() ?? "AUTO";
       switch (sourceName) {
         case "dood.watch":
           embedId = "doodstream";
@@ -40,6 +41,7 @@ async function getStreams(title: string) {
       if (!embedId) continue;
       embeds.push({
         url: `${primewireBase}/links/go/${links[link]}`,
+        quality: quality,
         embedId,
       });
     }
